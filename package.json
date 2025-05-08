@@ -1,0 +1,15 @@
+{
+  "name": "video-sync-project",
+  "version": "1.0.0",
+  "description": "Koyeb video sync app",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.17.1"
+  },
+  "engines": {
+    "node": "20.x"
+  }
+}

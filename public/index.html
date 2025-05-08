@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video.js Synchronization</title>
+    <link href="https://unpkg.com/video.js@7.10.2/dist/video-js.css" rel="stylesheet" />
+    <style>
+        .video-container {
+            position: relative;
+            width: 60%;
+            height: 350px;
+            margin: auto;
+        }
+        .video-js {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        #video1 { z-index: 2; }
+        #video2 { z-index: 1; }
+    </style>
+</head>
+<body>
+    <div class="video-container">
+        <video id="video1" class="video-js vjs-default-skin" controls preload="auto"></video>
+        <video id="video2" class="video-js vjs-default-skin" controls preload="auto"></video>
+    </div>
+
+    <script src="https://unpkg.com/video.js@7.10.2/dist/video.js"></script>
+    <script>
+        // Retrieve videoId from the URL (e.g., /video/T77_LWrKIks/m3u8)
+        const videoId = window.location.pathname.split('/')[2];
+
+        // Fetch the m3u8 URLs from the backend
+        fetch(`/video/${videoId}/m3u8`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.video1 && data.video2) {
+                    // Initialize Video.js players
+                    const player1 = videojs('video1', {
+                        sources: [{
+                            src: data.video1,
+                            type: 'application/x-mpegURL'
+                        }]
+                    });
+
+                    const player2 = videojs('video2', {
+                        sources: [{
+                            src: data.video2,
+                            type: 'application/x-mpegURL'
+                        }]
+                    });
+
+                    // Synchronize playback controls
+                    player1.on('play', () => player2.play());
+                    player2.on('play', () => player1.play());
+                    player1.on('pause', () => player2.pause());
+                    player2.on('pause', () => player1.pause());
+                    player1.on('seeked', () => player2.currentTime(player1.currentTime()));
+                    player2.on('seeked', () => player1.currentTime(player2.currentTime()));
+                } else {
+                    alert('Error: Unable to retrieve video URLs');
+                }
+            })
+            .catch(err => {
+                console.error('Error fetching video data:', err);
+                alert('Failed to load video URLs.');
+            });
+    </script>
+</body>
+</html>
