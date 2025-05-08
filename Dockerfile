@@ -1,27 +1,28 @@
-# Use an official Node.js 16 image as the base image
-FROM node:16
+# Use a Node.js 16+ base image
+FROM node:18-slim
 
-# Install necessary packages including Python, pip, and python3-venv
-RUN apt-get update && \
-    apt-get install -y python3 python3-pip python3-venv
-
-# Create a virtual environment and install yt-dlp
-RUN python3 -m venv /venv && \
-    /venv/bin/pip install --upgrade pip && \
-    /venv/bin/pip install yt-dlp
-
-# Set the working directory
+# Set working directory
 WORKDIR /app
 
-# Copy package.json and install dependencies
-COPY package.json ./
+# Install dependencies and yt-dlp
+RUN apt-get update && apt-get install -y \
+    python3 \
+    python3-pip \
+    curl \
+    ffmpeg \
+    && pip3 install --no-cache-dir -U yt-dlp \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy package files and install dependencies
+COPY package*.json ./
 RUN npm install
 
-# Copy the rest of the app
+# Copy app files
 COPY . .
 
-# Expose the port your app will run on
+# Expose the port
 EXPOSE 3000
 
-# Start the Node.js application
+# Start the app
 CMD ["node", "server.js"]
